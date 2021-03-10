@@ -1,0 +1,104 @@
+server:
+  port: 8080
+  #port: 443
+  # SSL证书
+  #ssl:
+    #key-store: classpath:txlkbin.com.jks
+    #key-store-password:
+    #key-store-type: JKS
+
+  #NATIVE,强制使用header.x-forwarded-for
+  #FRAMEWORK,强制使用remote_addr
+  #NONE,默认（普通运行使用remote_addr，云平台运行使用header.x-forwarded-for）
+  forward-headers-strategy: NATIVE
+
+# WEB服务器配置
+  # undertow服务器
+  undertow:
+    # 以下的配置会影响buffer,这些buffer会用于服务器连接的IO操作,有点类似netty的池化内存管理
+    # 每块buffer的空间大小,越小的空间被利用越充分
+    buffer-size: 1024
+    # 是否分配的直接内存
+    direct-buffers: true
+    threads:
+      # 设置IO线程数, 它主要执行非阻塞的任务,它们会负责多个连接, 默认设置每个CPU核心一个线程
+      io: 4
+      # 阻塞任务线程池, 当执行类似servlet请求阻塞操作, undertow会从这个线程池中取得线程,它的值设置取决于系统的负载
+      worker: 20
+
+  # jetty服务器
+#  jetty:
+#    accesslog:
+#      # 启用访问日志。
+#      enabled: true
+#      # 日志文件名。如果未指定，日志将重定向到“系统错误".
+#      filename: access_log.yyyy_MM_dd.log
+#      # 要放置在日志文件名中的日期格式。
+#      file-date-format: yyyy-MM-dd
+#      # 删除旋转日志文件之前的天数。
+#      retention-period: 20
+#      # 附加到日志。
+#      append: true
+#      # 请求日志的时间戳格式。
+#      custom-format: 'dd/MMM/yyyy:HH:mm:ss Z'
+#      # 扩展NCSA格式。 可选值：NCSA/EXTENDED_NCSA
+#      format: NCSA
+#    # HTTP post或put内容的最大大小（字节）。
+#    max-http-form-post-size: 4MB
+#    threads:
+#      # 要使用的接收器线程数。
+#      acceptors: 32
+#      # 要使用的选择器线程数。当值为-1（默认值）时，选择器的数目是从操作环境派生的。
+#      selectors: 32
+
+   # tomcat服务器
+#  tomcat:
+#  # 使用Nginx代理访问所需要的配置（不配置则无法获取请求的部分真实信息）
+#    remoteip:
+#      # 设定remote IP的header，如果remoteIpHeader有值，则设置为RemoteIpValve
+#      remote-ip-header: X-FORWARDED-FOR
+#      # 设定Header包含的协议，通常是 X-Forwarded-Proto，如果remoteIpHeader有值，则将设置为RemoteIpValve.
+#      protocol-header: X-Forwarded-Proto
+#      # 设定http header使用的，用来覆盖原来port的value.
+#      port-header: X-Forwarded-Port
+
+spring:
+  mvc:
+    # MVC试图解析器
+    view:
+      prefix: /pages/
+      suffix: .html
+  jackson:
+    # 请求响应数据的时间格式
+    date-format: yyyy年MM月dd日 HH:mm:ss
+    # 设置时区
+    time-zone: GMT+8
+  # 配置数据源
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+# mybatis-plus相关配置
+mybatis-plus:
+  # xml扫描，多个目录用逗号或者分号分隔（告诉 Mapper 所对应的 XML 文件位置）
+  mapper-locations: classpath:mapper/*.xml
+  # 以下配置均有默认值,可以不设置
+  global-config:
+    db-config:
+      #主键类型 AUTO:"数据库ID自增" INPUT:"用户输入ID",ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: auto
+      #字段策略 IGNORED:"忽略判断"  NOT_NULL:"非 NULL 判断")  NOT_EMPTY:"非空判断"
+      field-strategy: NOT_EMPTY
+      #数据库类型
+      db-type: MYSQL
+  configuration:
+    # 是否开启自动驼峰命名规则映射:从数据库列名到Java属性驼峰命名的类似映射
+    map-underscore-to-camel-case: true
+    # 如果查询结果中包含空值的列，则 MyBatis 在映射的时候，不会映射这个字段
+    call-setters-on-nulls: true
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  config: classpath:log/logback-spring.xml

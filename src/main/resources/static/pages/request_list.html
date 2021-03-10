@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>访问记录</title>
+    <style>
+        /*表格样式*/
+        table,table tr th, table tr td {
+            border:1px solid #0094ff;
+        }
+        table tr th{
+            white-space:nowrap;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            white-space:normal;
+            word-break:break-all;
+        }
+        table thead,table tbody{
+            width: 100%;
+        }
+    </style>
+</head>
+<script src="../vue.js"></script>
+<script src="../jquery-3.6.0.min.js"></script>
+<body>
+    <div id="app">
+        <div style="width: 400px;margin: 10px auto;">
+            <button @click="jumpPage(page.current)">刷新</button>
+            <button :disabled="page.current<=1" @click="pre()">上一页</button>
+            <span>当前第{{page.current}}/{{Math.ceil(page.total/page.size)}}页</span>
+            <button :disabled="page.current>=(page.total/page.size)" @click="next()">下一页</button>
+            <input type="text" v-model="changePage" style="width: 50px"></span>
+            <button @click="jumpPage(changePage)">GO</button>
+        </div>
+        <table v-if="page.records.length>0">
+            <thead>
+                <tr>
+                    <th>
+                        序号
+                    </th>
+                    <template v-for="(value,key,index) in page.records[0]">
+                        <th v-if="keys[key].width!=='hide'">
+                            {{keys[key].value}}
+                        </th>
+                    </template>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item,index) in page.records">
+                    <td style="text-align: center;">
+                        {{(page.current-1)*page.size+index+1}}
+                    </td>
+                    <td v-for="(value,key,i) in item" :style="(keys[key].width==null?'':(keys[key].width==='adapt'?'white-space: nowrap;':(keys[key].width==='hide'?'display: none;':('width:'+keys[key].width+';'))))+'text-align: center;padding: 3px;'">
+                        {{value}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data(){
+            return {
+                changePage: '',
+                page: {
+                    total: 0, // 总数
+                    size: 10, // 每页显示条数，默认 10
+                    current: 1, // 当前页
+                    records: [] // 数据
+                },
+                keys: {
+                    address: {
+                        value: "用户地址",
+                        width: "adapt"
+                    },
+                    data: {
+                        value: "请求数据",
+                        width: null
+                    },
+                    datetime: {
+                        value: "请求时间",
+                        width: "adapt"
+                    },
+                    headers: {
+                        value: "请求头",
+                        width: null
+                    },
+                    id: {
+                        value: "id",
+                        width: "hide"
+                    },
+                    type: {
+                        value: "参数类型（暂未记录）",
+                        width: "hide"
+                    },
+                    url: {
+                        value: "请求地址",
+                        width: null
+                    },
+                }
+            };
+        },
+        mounted(){
+            this.jumpPage(this.page.current);
+        },
+        methods:{
+            pre(){ // 上一页
+                if(this.page.current>1){
+                    this.page.current--;
+                    this.jumpPage(this.page.current);
+                }
+            },
+            next(){ // 下一页
+                this.page.current++;
+                this.jumpPage(this.page.current);
+            },
+            jumpPage(changePage){ // 跳转页
+                if(changePage === null || changePage === undefined) return;
+                $.ajax({
+                    type: "POST",
+                    url: "/tableRequest/selectAll",
+                    data: JSON.stringify({
+                        size: this.page.size,
+                        current: changePage,
+                        orders: [{
+                            column: "datetime",
+                            asc: false
+                        },{
+                            column: "id",
+                            asc: false
+                        }]
+                    }),
+                    dataType: "json",
+                    contentType: 'application/json',
+                    success: function(data){
+                        if(data.data){
+                            vue.$nextTick(()=>{
+                                vue.page = data.data;
+                                console.log(vue.page, data.data)
+                            })
+                        }
+                    }
+                });
+            },
+        }
+    })
+</script>
+</html>

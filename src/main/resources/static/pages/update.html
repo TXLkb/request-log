@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<script src="../vue.js"></script>
+<script src="../jquery-3.6.0.min.js"></script>
+<body>
+    <div id="app">
+        <input v-model="url">
+        <button @click="save">保存</button>
+        <br>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data(){
+                return {
+                    url: "https://qr.alipay.com/0r106032k2y1cz23xz24"
+                }
+            },
+            methods:{
+                save(){
+                    $.ajax({
+                        type: "GET",
+                        url: "/tableRequest",
+                        data: JSON.stringify({id:1,parameterValue:this.url}),
+                        dataType: "json",
+                        contentType: 'application/json',
+                        success: function(data){
+                            if(data.data){
+                                alert("修改成功");
+                            }
+                        }
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+</html>
